@@ -84,13 +84,23 @@
 
         async function predict() {
             try {
-                // predict the mood class
+                // Predict the mood class
                 const prediction = await model.predict(webcam.canvas);
 
-                // Change the background color based on the prediction
+                // Log prediction details for debugging
+                writeLog(`Predictions: ${JSON.stringify(prediction)}`);
+
+                // Log the predicted classes and probabilities for better understanding
                 let mood = "none";
+                prediction.forEach((pred) => {
+                    writeLog(`Class: ${pred.className}, Probability: ${pred.probability}`);
+                });
+
+                // Lower the confidence threshold for testing
+                let threshold = 0.4;
+
                 for (let i = 0; i < maxPredictions; i++) {
-                    if (prediction[i].probability > 0.5) {
+                    if (prediction[i].probability > threshold) {
                         mood = prediction[i].className;
                     }
                 }
