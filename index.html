@@ -23,65 +23,87 @@
 </head>
 <body>
     <video id="webcam" autoplay playsinline></video>
+    <p id="log" style="position: absolute; bottom: 0; width: 100%; text-align: center; color: red;"></p>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
     <script>
         const URL = "https://teachablemachine.withgoogle.com/models/J5oEmS-lf/";
 
-        let model, webcam, labelContainer, maxPredictions;
+        let model, webcam, maxPredictions;
+        const logElement = document.getElementById('log');
+
+        function writeLog(message) {
+            console.log(message); // log to console
+            logElement.innerText = message; // log to the webpage
+        }
 
         async function init() {
             try {
+                writeLog("Initializing...");
+
                 const modelURL = URL + "model.json";
                 const metadataURL = URL + "metadata.json";
 
                 // Load the model and metadata
+                writeLog("Loading model...");
                 model = await tmImage.load(modelURL, metadataURL);
                 maxPredictions = model.getTotalClasses();
+                writeLog("Model loaded successfully!");
 
                 // Setup the webcam
                 const webcamElement = document.getElementById("webcam");
                 const flip = true; // whether to flip the webcam
                 webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-                await webcam.setup(); // request access to the webcam
 
-                // Check if webcam has been successfully initialized
-                if (webcam.canvas) {
-                    webcamElement.srcObject = webcam.canvas.captureStream();
-                    await webcam.play();
+                writeLog("Setting up webcam...");
+                await webcam.setup().then(() => {
+                    writeLog("Webcam setup successful.");
+                    webcam.play();
                     window.requestAnimationFrame(loop);
-                } else {
-                    console.error("Webcam not initialized correctly.");
-                }
+                }).catch((err) => {
+                    writeLog("Error accessing webcam: " + err);
+                });
+
             } catch (error) {
-                console.error("Error initializing the model or webcam: ", error);
+                writeLog("Error initializing the model or webcam: " + error);
             }
         }
 
         async function loop() {
-            webcam.update(); // update the webcam frame
-            await predict();
-            window.requestAnimationFrame(loop);
+            try {
+                webcam.update(); // update the webcam frame
+                await predict();
+                window.requestAnimationFrame(loop);
+            } catch (error) {
+                writeLog("Error in the loop: " + error);
+            }
         }
 
         async function predict() {
-            // predict the mood class
-            const prediction = await model.predict(webcam.canvas);
+            try {
+                // predict the mood class
+                const prediction = await model.predict(webcam.canvas);
 
-            // Change the background color based on the prediction
-            let mood = "none";
-            for (let i = 0; i < maxPredictions; i++) {
-                if (prediction[i].probability > 0.5) {
-                    mood = prediction[i].className;
+                // Change the background color based on the prediction
+                let mood = "none";
+                for (let i = 0; i < maxPredictions; i++) {
+                    if (prediction[i].probability > 0.5) {
+                        mood = prediction[i].className;
+                    }
                 }
-            }
 
-            if (mood === "Happy") {
-                document.body.style.backgroundColor = "green";
-            } else if (mood === "Sad") {
-                document.body.style.backgroundColor = "red";
-            } else {
-                document.body.style.backgroundColor = "white";
+                if (mood === "Happy") {
+                    document.body.style.backgroundColor = "green";
+                    writeLog("Mood detected: Happy");
+                } else if (mood === "Sad") {
+                    document.body.style.backgroundColor = "red";
+                    writeLog("Mood detected: Sad");
+                } else {
+                    document.body.style.backgroundColor = "white";
+                    writeLog("No clear mood detected");
+                }
+            } catch (error) {
+                writeLog("Error during prediction: " + error);
             }
         }
 
