@@ -27,7 +27,7 @@
 
     <!-- Correctly load TensorFlow.js and Teachable Machine Image libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
 
     <script>
         const URL = "https://teachablemachine.withgoogle.com/models/J5oEmS-lf/";
@@ -49,7 +49,7 @@
 
                 // Load the model and metadata
                 writeLog("Loading model...");
-                model = await tmImage.load(modelURL, metadataURL); // Loading Teachable Machine Image model
+                model = await tmImage.load(modelURL, metadataURL); // Use tmImage from the Teachable Machine library
                 maxPredictions = model.getTotalClasses();
                 writeLog("Model loaded successfully!");
 
