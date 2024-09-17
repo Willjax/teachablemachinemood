@@ -19,13 +19,23 @@
             width: 60%;
             height: auto;
         }
+        canvas {
+            display: none;
+        }
+        #log {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            color: red;
+        }
     </style>
 </head>
 <body>
     <video id="webcam" autoplay playsinline></video>
-    <p id="log" style="position: absolute; bottom: 0; width: 100%; text-align: center; color: red;"></p>
+    <p id="log"></p>
 
-    <!-- Correctly load TensorFlow.js and Teachable Machine Image libraries -->
+    <!-- Load TensorFlow.js and Teachable Machine Image libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3/dist/teachablemachine-image.min.js"></script>
 
@@ -36,8 +46,8 @@
         const logElement = document.getElementById('log');
 
         function writeLog(message) {
-            console.log(message); // log to console
-            logElement.innerText = message; // log to the webpage
+            console.log(message); // Log to console
+            logElement.innerText = message; // Log to the webpage
         }
 
         async function init() {
@@ -56,7 +66,7 @@
                 // Setup the webcam
                 const webcamElement = document.getElementById("webcam");
                 const flip = true; // whether to flip the webcam
-                webcam = new tmImage.Webcam(200, 200, flip); // Initialize webcam
+                webcam = new tmImage.Webcam(400, 300, flip); // Larger resolution for clearer input
 
                 writeLog("Setting up webcam...");
                 await webcam.setup().then(() => {
@@ -88,16 +98,18 @@
                 const prediction = await model.predict(webcam.canvas);
 
                 // Log prediction details for debugging
-                writeLog(`Predictions: ${JSON.stringify(prediction)}`);
-
-                // Log the predicted classes and probabilities for better understanding
+                let predictionLog = "Predictions: ";
                 let mood = "none";
+
                 prediction.forEach((pred) => {
-                    writeLog(`Class: ${pred.className}, Probability: ${pred.probability}`);
+                    predictionLog += `${pred.className}: ${pred.probability.toFixed(2)}, `;
                 });
 
-                // Lower the confidence threshold for testing
-                let threshold = 0.4;
+                // Show predictions on the page for better visibility
+                writeLog(predictionLog);
+
+                // Lower confidence threshold even further for testing
+                let threshold = 0.2;
 
                 for (let i = 0; i < maxPredictions; i++) {
                     if (prediction[i].probability > threshold) {
@@ -115,6 +127,7 @@
                     document.body.style.backgroundColor = "white";
                     writeLog("No clear mood detected");
                 }
+
             } catch (error) {
                 writeLog("Error during prediction: " + error);
             }
