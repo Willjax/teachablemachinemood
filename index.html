@@ -24,8 +24,11 @@
 <body>
     <video id="webcam" autoplay playsinline></video>
     <p id="log" style="position: absolute; bottom: 0; width: 100%; text-align: center; color: red;"></p>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
+
+    <!-- Correctly load TensorFlow.js and Teachable Machine Image libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.3"></script>
+
     <script>
         const URL = "https://teachablemachine.withgoogle.com/models/J5oEmS-lf/";
 
@@ -46,14 +49,14 @@
 
                 // Load the model and metadata
                 writeLog("Loading model...");
-                model = await tmImage.load(modelURL, metadataURL);
+                model = await tmImage.load(modelURL, metadataURL); // Loading Teachable Machine Image model
                 maxPredictions = model.getTotalClasses();
                 writeLog("Model loaded successfully!");
 
                 // Setup the webcam
                 const webcamElement = document.getElementById("webcam");
                 const flip = true; // whether to flip the webcam
-                webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+                webcam = new tmImage.Webcam(200, 200, flip); // Initialize webcam
 
                 writeLog("Setting up webcam...");
                 await webcam.setup().then(() => {
