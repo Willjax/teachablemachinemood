@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Detector</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            transition: background-color 0.5s;
+        }
+        video {
+            border: 5px solid black;
+            width: 60%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <video id="webcam" autoplay playsinline></video>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
+    <script>
+        const URL = "https://teachablemachine.withgoogle.com/models/J5oEmS-lf/";
+
+        let model, webcam, labelContainer, maxPredictions;
+
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            // Load the model and metadata
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            // Setup the webcam
+            const webcamElement = document.getElementById("webcam");
+            const flip = true; // whether to flip the webcam
+            webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+            await webcam.setup(); // request access to the webcam
+            await webcam.play();
+            window.requestAnimationFrame(loop);
+
+            // append elements to the DOM
+            document.getElementById("webcam").appendChild(webcam.canvas);
+        }
+
+        async function loop() {
+            webcam.update(); // update the webcam frame
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        async function predict() {
+            // predict the mood class
+            const prediction = await model.predict(webcam.canvas);
+
+            // Change the background color based on the prediction
+            let mood = "none";
+            for (let i = 0; i < maxPredictions; i++) {
+                if (prediction[i].probability > 0.5) {
+                    mood = prediction[i].className;
+                }
+            }
+
+            if (mood === "Happy") {
+                document.body.style.backgroundColor = "green";
+            } else if (mood === "Sad") {
+                document.body.style.backgroundColor = "red";
+            } else {
+                document.body.style.backgroundColor = "white";
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
